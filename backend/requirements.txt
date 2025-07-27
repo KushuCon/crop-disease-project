@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+tensorflow
+Pillow
+numpy
+google-generativeai
+fpdf2
+firebase-admin
+google-cloud-storage

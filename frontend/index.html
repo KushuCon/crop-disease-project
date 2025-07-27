@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriCare AI - Crop Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Hero Background with Animation */
+        .hero-bg {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.8)), 
+                        url('https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=2487&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(34, 197, 94, 0.1) 0%, 
+                transparent 30%, 
+                rgba(16, 185, 129, 0.1) 70%, 
+                rgba(34, 197, 94, 0.1) 100%);
+            animation: shimmer 8s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        /* Fade In Up Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        /* Staggered Animation */
+        .fade-in-up.delay-1 { animation-delay: 0.2s; opacity: 0; }
+        .fade-in-up.delay-2 { animation-delay: 0.4s; opacity: 0; }
+        .fade-in-up.delay-3 { animation-delay: 0.6s; opacity: 0; }
+
+        /* Header Animation */
+        .header-animate {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #22c55e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Card Hover Effects */
+        .upload-card {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
+            transition: left 0.8s;
+        }
+        
+        .upload-card:hover::before {
+            left: 100%;
+        }
+        
+        .upload-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Drop Zone Animation */
+        .drop-zone-hover {
+            transform: scale(1.02);
+            border-color: #22c55e !important;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), rgba(16, 185, 129, 0.05));
+        }
+
+        /* Button Animations */
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Report Content Styling */
+        #report-content {
+            white-space: pre-wrap;
+            text-align: left;
+            line-height: 1.8;
+        }
+        
+        #report-content h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+            padding-left: 1rem;
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.1), transparent);
+            padding: 0.75rem 0 0.75rem 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        #report-content h3:first-child {
+            margin-top: 0;
+        }
+        
+        .bullet-point {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .bullet-point:hover {
+            background-color: rgba(34, 197, 94, 0.05);
+        }
+        
+        .bullet-point::before {
+            content: "🌱";
+            margin-right: 0.75rem;
+            margin-top: 0.1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Progress Indicators */
+        .download-progress {
+            display: none;
+        }
+        
+        .download-progress.show {
+            display: inline-block;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #22c55e, #16a34a, #15803d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Success Animation */
+        @keyframes success-bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            80% { transform: translateY(-10px); }
+        }
+        
+        .success-animation {
+            animation: success-bounce 1s ease-in-out;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero-bg {
+                background-attachment: scroll;
+            }
+            
+            .upload-card:hover {
+                transform: none;
+            }
+        }
+
+        /* Particle Animation Background */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.1);
+            animation: float-particles 20s linear infinite;
+        }
+        
+        @keyframes float-particles {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800">
+
+    <!-- Floating Particles -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="particle" style="left: 10%; width: 4px; height: 4px; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; width: 6px; height: 6px; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; width: 3px; height: 3px; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; width: 5px; height: 5px; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; width: 4px; height: 4px; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; width: 6px; height: 6px; animation-delay: 10s;"></div>
+        <div class="particle" style="left: 70%; width: 3px; height: 3px; animation-delay: 12s;"></div>
+        <div class="particle" style="left: 80%; width: 5px; height: 5px; animation-delay: 14s;"></div>
+        <div class="particle" style="left: 90%; width: 4px; height: 4px; animation-delay: 16s;"></div>
+    </div>
+
+    <header class="header-animate sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-3xl font-bold gradient-text float-animation">🌾 AgriCare AI</h1>
+                <div class="hidden md:flex items-center space-x-6">
+                    <span class="text-sm text-gray-600 font-medium">AI-Powered Crop Health</span>
+                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-animation"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero-bg text-white relative z-10">
+        <div class="container mx-auto px-6 py-32 text-center relative z-20">
+            <h2 class="text-5xl md:text-7xl font-bold mb-6 fade-in-up text-white">
+                Identify Crop Diseases 
+                <span class="text-green-300">
+                    Instantly
+                </span>
+            </h2>
+            <p class="text-xl md:text-2xl max-w-4xl mx-auto mb-8 fade-in-up delay-1 leading-relaxed">
+                Upload a photo of a plant leaf, and our advanced AI will detect diseases and provide a 
+                <span class="font-semibold text-green-300">complete advisory report</span> to protect your harvest.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in-up delay-2">
+                <div class="flex items-center space-x-2 text-green-300">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                    </svg>
+                    <span class="font-medium">Free Analysis</span>
+                </div>
+                <div class="flex items-center space-x-2 text-green-300">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                    </svg>
+                    <span class="font-medium">Instant Results</span>
+                </div>
+                <div class="flex items-center space-x-2 text-green-300">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                    </svg>
+                    <span class="font-medium">Expert Advice</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container mx-auto px-6 py-16 relative z-10">
+        <div class="upload-card glass-card p-10 rounded-3xl shadow-2xl max-w-5xl mx-auto">
+            
+            <div id="upload-container">
+                <div class="text-center mb-10">
+                    <h3 class="text-3xl font-bold mb-4 gradient-text">Get Your Free Analysis Report</h3>
+                    <p class="text-gray-600 text-lg">No signup required. Simple, fast, and effective.</p>
+                    <div class="w-24 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+                
+                <div id="upload-section">
+                    <div class="border-4 border-dashed border-gray-300 rounded-2xl p-12 text-center cursor-pointer hover:border-green-500 transition-all duration-300 bg-gradient-to-br from-gray-50 to-white" id="drop-zone">
+                        <input type="file" id="file-input" class="hidden" accept="image/*">
+                        <div class="float-animation">
+                            <div class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
+                                <svg class="w-16 h-16 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h4 class="text-2xl font-bold text-gray-700 mb-2">Upload Plant Image</h4>
+                        <p class="text-xl font-medium text-gray-600 mb-2">Drag & drop an image here, or <span class="text-green-600 font-bold hover:text-green-700 transition-colors">click to select a file</span></p>
+                        <p class="text-gray-500">Supports: JPG, PNG, JPEG (Max 10MB)</p>
+                        <div class="mt-6 flex justify-center space-x-8 text-sm text-gray-400">
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span>Tomato</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span>Potato</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span>Pepper</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="image-preview-container" class="hidden mt-8">
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                <img id="image-preview" src="#" alt="Image Preview" class="max-h-96 rounded-2xl shadow-2xl border-4 border-white"/>
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fixed Button Container with Perfect Centering -->
+                        <div class="w-full flex justify-center items-center mt-8">
+                            <button id="analyze-button" class="btn-primary text-white font-bold py-4 px-12 rounded-2xl text-lg focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50 shadow-xl">
+                                <span class="flex items-center justify-center space-x-2">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                    </svg>
+                                    <span>Analyze with AI</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading-spinner" class="hidden text-center mt-12">
+                <div class="loader mx-auto mb-6"></div>
+                <h4 class="text-2xl font-bold text-gray-700 mb-2">AI Analysis in Progress</h4>
+                <p class="text-lg text-gray-600 mb-2">Our advanced AI is examining the leaf...</p>
+                <p class="text-gray-500">Generating a comprehensive report for you.</p>
+                <div class="mt-6 flex justify-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                </div>
+            </div>
+            
+            <div id="report-container" class="hidden">
+                <div class="text-center mb-8 success-animation">
+                    <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-4xl font-bold gradient-text mb-2">Analysis Complete!</h2>
+                    <p class="text-gray-600">Your comprehensive crop health report is ready</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-200 shadow-inner">
+                    <h3 id="disease-name" class="text-2xl font-bold mb-6 text-center text-red-600 bg-red-50 p-4 rounded-xl border border-red-200"></h3>
+                    <div id="report-content" class="prose max-w-none text-gray-700"></div>
+                </div>
+                
+                <div class="text-center mt-10 space-y-4">
+                    <button id="download-button" class="btn-secondary text-white font-bold py-4 px-12 rounded-2xl text-lg focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl">
+                        <span id="download-text" class="flex items-center justify-center space-x-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span>Download PDF Report</span>
+                        </span>
+                        <span id="download-spinner" class="download-progress ml-2">
+                            <svg class="animate-spin h-5 w-5 inline" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                    <br>
+                    <button id="start-over-button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-xl transition-all duration-300 border border-gray-300">
+                        <span class="flex items-center justify-center space-x-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>Analyze Another Image</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="error-message" class="hidden bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg relative mt-8 shadow-lg">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
+                    </svg>
+                    <div>
+                        <strong class="font-bold">Error:</strong>
+                        <span class="block sm:inline ml-1" id="error-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-green-600/10 to-emerald-600/10"></div>
+        <div class="container mx-auto px-6 py-8 relative z-10">
+            <div class="text-center">
+                <div class="mb-4">
+                    <h4 class="text-2xl font-bold gradient-text mb-2">🌾 AgriCare AI</h4>
+                    <p class="text-gray-300">Empowering farmers with AI-driven crop health solutions</p>
+                </div>
+                <div class="border-t border-gray-700 pt-4">
+                    <p class="text-gray-400">&copy; 2025 AgriCare AI. A Final Year B.Tech Project.</p>
+                    <p class="text-sm text-gray-500 mt-1">Built with ❤️ for sustainable agriculture</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const analyzeButton = document.getElementById('analyze-button');
+        const uploadContainer = document.getElementById('upload-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const reportContainer = document.getElementById('report-container');
+        const diseaseNameElement = document.getElementById('disease-name');
+        const reportContentElement = document.getElementById('report-content');
+        const downloadButton = document.getElementById('download-button');
+        const downloadText = document.getElementById('download-text');
+        const downloadSpinner = document.getElementById('download-spinner');
+        const startOverButton = document.getElementById('start-over-button');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        let uploadedFile = null;
+        let reportData = {};
+
+        // Enhanced Event Listeners with Animations
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            dropZone.classList.add('drop-zone-hover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drop-zone-hover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-zone-hover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', () => { 
+            if (fileInput.files.length) {
+                handleFile(fileInput.files[0]); 
+            }
+        });
+        
+        analyzeButton.addEventListener('click', handleAnalysis);
+        startOverButton.addEventListener('click', resetUI);
+        downloadButton.addEventListener('click', handleDownload);
+
+        // Enhanced File Handling with Animations
+        function handleFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                // File size check (10MB limit)
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('File size too large. Please upload an image smaller than 10MB.');
+                    return;
+                }
+                
+                uploadedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    
+                    // Smooth transition animations
+                    dropZone.style.transition = 'all 0.5s ease';
+                    dropZone.style.opacity = '0';
+                    dropZone.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        dropZone.classList.add('hidden');
+                        imagePreviewContainer.classList.remove('hidden');
+                        imagePreviewContainer.style.opacity = '0';
+                        imagePreviewContainer.style.transform = 'translateY(20px)';
+                        
+                        setTimeout(() => {
+                            imagePreviewContainer.style.transition = 'all 0.5s ease';
+                            imagePreviewContainer.style.opacity = '1';
+                            imagePreviewContainer.style.transform = 'translateY(0)';
+                        }, 50);
+                    }, 250);
+                    
+                    errorMessage.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showError('Please upload a valid image file (JPG, PNG, JPEG).');
+                uploadedFile = null;
+            }
+        }
+
+        // Enhanced Analysis Function
+        async function handleAnalysis() {
+            if (!uploadedFile) {
+                showError('No file selected for analysis.');
+                return;
+            }
+
+            // Smooth transition to loading state
+            uploadContainer.style.transition = 'all 0.5s ease';
+            uploadContainer.style.opacity = '0';
+            uploadContainer.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                uploadContainer.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                loadingSpinner.style.opacity = '0';
+                loadingSpinner.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    loadingSpinner.style.transition = 'all 0.5s ease';
+                    loadingSpinner.style.opacity = '1';
+                    loadingSpinner.style.transform = 'translateY(0)';
+                }, 50);
+            }, 250);
+            
+            reportContainer.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('image', uploadedFile);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/analyze_image', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                    throw new Error(errData.error || `Server error: ${response.status} ${response.statusText}`);
+                }
+
+                reportData = await response.json();
+                console.log('Report data received:', reportData);
+                displayReport(reportData);
+
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                showError(`Analysis failed: ${error.message}`);
+                
+                // Return to upload state with animation
+                loadingSpinner.style.opacity = '0';
+                setTimeout(() => {
+                    loadingSpinner.classList.add('hidden');
+                    uploadContainer.classList.remove('hidden');
+                    uploadContainer.style.opacity = '0';
+                    uploadContainer.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        uploadContainer.style.opacity = '1';
+                        uploadContainer.style.transform = 'translateY(0)';
+                    }, 50);
+                }, 250);
+            }
+        }
+        
+        // Enhanced Report Display with Animations
+        function displayReport(data) {
+            // Smooth transition from loading to report
+            loadingSpinner.style.opacity = '0';
+            loadingSpinner.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                loadingSpinner.classList.add('hidden');
+                reportContainer.classList.remove('hidden');
+                reportContainer.style.opacity = '0';
+                reportContainer.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    reportContainer.style.transition = 'all 0.6s ease';
+                    reportContainer.style.opacity = '1';
+                    reportContainer.style.transform = 'translateY(0)';
+                }, 50);
+            }, 300);
+            
+            // Clean and format disease name
+            const cleanDiseaseName = data.disease_name
+                .replace(/___/g, ' ')
+                .replace(/__/g, ' ')
+                .replace(/_/g, ' ')
+                .trim();
+            
+            diseaseNameElement.textContent = `🦠 Identified Disease: ${cleanDiseaseName}`;
+            
+            // Format the report text with better HTML structure
+            let formattedText = data.report_text;
+            
+            // Convert markdown-style headers to HTML
+            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<h3>$1</h3>');
+            
+            // Convert bullet points to proper HTML with styling
+            formattedText = formattedText.replace(/^\* (.+)$/gm, '<div class="bullet-point">$1</div>');
+            
+            // Add line breaks for better formatting
+            formattedText = formattedText.replace(/\n\n/g, '<br><br>');
+            formattedText = formattedText.replace(/\n/g, '<br>');
+            
+            reportContentElement.innerHTML = formattedText;
+            
+            // Add animation to report sections
+            setTimeout(() => {
+                const sections = reportContentElement.querySelectorAll('h3');
+                sections.forEach((section, index) => {
+                    section.style.opacity = '0';
+                    section.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        section.style.transition = 'all 0.4s ease';
+                        section.style.opacity = '1';
+                        section.style.transform = 'translateX(0)';
+                    }, index * 100);
+                });
+            }, 400);
+        }
+
+        // Enhanced Download Function
+        async function handleDownload() {
+            if (!reportData.report_text || !reportData.disease_name) {
+                showError("No report data available for download.");
+                return;
+            }
+            
+            // Enhanced loading state with animations
+            downloadButton.disabled = true;
+            downloadButton.style.transform = 'scale(0.98)';
+            downloadText.innerHTML = `
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Generating PDF...</span>
+            `;
+            downloadSpinner.classList.add('show');
+            
+            try {
+                console.log('Sending PDF request with data:', reportData);
+                
+                const response = await fetch('http://127.0.0.1:5000/generate_pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        report_text: reportData.report_text,
+                        disease_name: reportData.disease_name
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                    throw new Error(errorData.error || `PDF generation failed: ${response.status} ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                
+                // Create download link with success animation
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Clean filename
+                const cleanName = reportData.disease_name
+                    .replace(/[^a-zA-Z0-9]/g, '_')
+                    .replace(/_+/g, '_')
+                    .replace(/^_|_$/g, '');
+                
+                a.download = `AgriCare_Report_${cleanName}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // Success animation
+                downloadButton.style.transform = 'scale(1.05)';
+                downloadText.innerHTML = `
+                    <svg class="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                    </svg>
+                    <span>Downloaded Successfully!</span>
+                `;
+                
+                setTimeout(() => {
+                    downloadButton.style.transform = 'scale(1)';
+                }, 200);
+                
+                console.log('PDF download successful');
+
+            } catch (error) {
+                console.error('Download failed:', error);
+                showError(`PDF download failed: ${error.message}`);
+            } finally {
+                // Reset button state after delay
+                setTimeout(() => {
+                    downloadButton.disabled = false;
+                    downloadText.innerHTML = `
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span>Download PDF Report</span>
+                    `;
+                    downloadSpinner.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // Enhanced Error Display
+        function showError(message) {
+            errorMessage.classList.remove('hidden');
+            errorMessage.style.opacity = '0';
+            errorMessage.style.transform = 'translateY(10px)';
+            errorText.textContent = message;
+            
+            setTimeout(() => {
+                errorMessage.style.transition = 'all 0.3s ease';
+                errorMessage.style.opacity = '1';
+                errorMessage.style.transform = 'translateY(0)';
+            }, 50);
+            
+            console.error('Error shown to user:', message);
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                if (!errorMessage.classList.contains('hidden')) {
+                    errorMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        errorMessage.classList.add('hidden');
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Enhanced Reset Function
+        function resetUI() {
+            uploadedFile = null;
+            fileInput.value = '';
+            reportData = {};
+            
+            // Smooth transitions back to initial state
+            if (!reportContainer.classList.contains('hidden')) {
+                reportContainer.style.opacity = '0';
+                reportContainer.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    reportContainer.classList.add('hidden');
+                }, 300);
+            }
+            
+            if (!loadingSpinner.classList.contains('hidden')) {
+                loadingSpinner.style.opacity = '0';
+                setTimeout(() => {
+                    loadingSpinner.classList.add('hidden');
+                }, 300);
+            }
+            
+            errorMessage.style.opacity = '0';
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 300);
+            
+            setTimeout(() => {
+                uploadContainer.classList.remove('hidden');
+                uploadContainer.style.opacity = '0';
+                uploadContainer.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    uploadContainer.style.transition = 'all 0.5s ease';
+                    uploadContainer.style.opacity = '1';
+                    uploadContainer.style.transform = 'translateY(0)';
+                }, 50);
+                
+                imagePreviewContainer.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+                dropZone.style.opacity = '1';
+                dropZone.style.transform = 'scale(1)';
+            }, 400);
+            
+            // Reset download button
+            downloadButton.disabled = false;
+            downloadText.innerHTML = `
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Download PDF Report</span>
+            `;
+            downloadSpinner.classList.remove('show');
+        }
+
+        // Scroll animations for header
+        let lastScrollTop = 0;
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const header = document.querySelector('header');
+            
+            if (scrollTop > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.backdropFilter = 'blur(10px)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.backdropFilter = 'blur(10px)';
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+
+        // Add global error handlers for debugging
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+
+        // Initialize page animations
+        window.addEventListener('load', () => {
+            // Trigger initial animations
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+</html>
+
