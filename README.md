@@ -73,7 +73,7 @@ Follow these steps to run the project on your local machine.
 ### 🔧 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/crop-disease-project.git
+git clone https:https://github.com/KushuCon/crop-disease-project.git
 cd crop-disease-project
 ```
 
