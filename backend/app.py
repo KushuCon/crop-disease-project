@@ -21,7 +21,7 @@ from fpdf.enums import XPos, YPos
 # --- CONFIGURATION ---
 
 # IMPORTANT: Configure your Gemini API Key here
-YOUR_GEMINI_API_KEY = "your-own-api-key"
+YOUR_GEMINI_API_KEY = "AIzaSyCe3Bmfi4Fjs1RT-D5UTBjR0MIAKggiLuk"
 
 # IMPORTANT: Configure your Class Names here
 CLASS_NAMES = {
